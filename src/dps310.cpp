@@ -21,7 +21,6 @@ void dps::read(float *temp, float *pressure)
 {
 	sensors_event_t temp_event, pressure_event;
 
-	
 	dps_temp->getEvent(&temp_event);
 	*temp = temp_event.temperature;
 	delay(30);

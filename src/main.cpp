@@ -4,6 +4,7 @@
 #include <dps310.h>
 #include <fifo.h>
 #include <util.h>
+#include <sh_hdc2080.h>
 
 #define MES_INTERVAL 200
 #define AVG_INTERVAL 6000
@@ -11,14 +12,21 @@
 
 #define OPT_BUFF_SIZE ROLLING_BUFFER_SIZE(AVG_INTERVAL, MES_INTERVAL)
 
-float _lightReadingsBuffer[OPT_BUFF_SIZE] = {0.0f};
-fifo_controller_t lightReadingsBuffer = {OPT_BUFF_SIZE, _lightReadingsBuffer, 0};
+float _lightBuff[OPT_BUFF_SIZE] = {0.0f};
+fifo_controller_t lightBuff = {OPT_BUFF_SIZE, _lightBuff, 0};
 
-float _tempReadingsBuffer[OPT_BUFF_SIZE] = {0.0f};
-fifo_controller_t tempReadingsBuffer = {OPT_BUFF_SIZE, _tempReadingsBuffer, 0};
+float _tempBuff[OPT_BUFF_SIZE] = {0.0f};
+fifo_controller_t tempBuff = {OPT_BUFF_SIZE, _tempBuff, 0};
 
-float _pressureReadingsBuffer[OPT_BUFF_SIZE] = {0.0f};
-fifo_controller_t pressureReadingsBuffer = {OPT_BUFF_SIZE, _pressureReadingsBuffer, 0};
+float _pressureBuff[OPT_BUFF_SIZE] = {0.0f};
+fifo_controller_t pressureBuff = {OPT_BUFF_SIZE, _pressureBuff, 0};
+
+float _temp2Buff[OPT_BUFF_SIZE] = {0.0f};
+fifo_controller_t temp2Buff = {OPT_BUFF_SIZE, _temp2Buff, 0};
+
+float _humiBuff[OPT_BUFF_SIZE] = {0.0f};
+fifo_controller_t humiBuff = {OPT_BUFF_SIZE, _humiBuff, 0};
+
 
 unsigned long lastMesTimestamp;
 unsigned long lastPrintTimestamp;
@@ -28,6 +36,7 @@ void setup() {
 	Serial.begin(9600);
 	opt::configure();
 	dps::configure();
+	hdc::configure();
 	lastMesTimestamp = millis();
 	lastPrintTimestamp = millis();
 }
@@ -38,11 +47,15 @@ void loop() {
 	{
 		Serial.print("[");
 
-		Serial.print(fifo_getAverage( &lightReadingsBuffer ));
+		Serial.print(fifo_getAverage( &lightBuff ));
 		Serial.print("|");
-		Serial.print(fifo_getAverage( &tempReadingsBuffer ));
+		Serial.print(fifo_getAverage( &tempBuff ));
 		Serial.print("|");
-		Serial.print(fifo_getAverage( &pressureReadingsBuffer ));
+		Serial.print(fifo_getAverage( &pressureBuff ));
+		Serial.print("|");
+		Serial.print(fifo_getAverage( &temp2Buff ));
+		Serial.print("|");
+		Serial.print(fifo_getAverage( &humiBuff ));
 
 		Serial.println("]");
 		lastPrintTimestamp = currentTimestamp;
@@ -50,12 +63,14 @@ void loop() {
 	
 	if (currentTimestamp - lastMesTimestamp > MES_INTERVAL)
 	{
-		float temp;
-		float pressure;
-		dps::read(&temp, &pressure);
-		fifo_push( &lightReadingsBuffer, opt::read() );
-		fifo_push( &tempReadingsBuffer, temp );
-		fifo_push( &pressureReadingsBuffer, pressure );
+		float temp, temp2, pressure, humi;
+		dps::read( &temp, &pressure );
+		hdc::read( &temp2, &humi );
+		fifo_push( &lightBuff, opt::read() );
+		fifo_push( &tempBuff, temp );
+		fifo_push( &pressureBuff, pressure );
+		fifo_push( &temp2Buff, temp2 );
+		fifo_push( &humiBuff, humi );
 		lastMesTimestamp = currentTimestamp;
 	}
 }
