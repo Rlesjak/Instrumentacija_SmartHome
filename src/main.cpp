@@ -5,6 +5,7 @@
 #include <fifo.h>
 #include <util.h>
 #include <sh_hdc2080.h>
+#include <communication.h>
 
 #define MES_INTERVAL 200
 #define AVG_INTERVAL 6000
@@ -33,7 +34,7 @@ unsigned long lastPrintTimestamp;
 unsigned long currentTimestamp;
 
 void setup() {
-	Serial.begin(9600);
+	comm::configure(9600);
 	opt::configure();
 	dps::configure();
 	hdc::configure();
@@ -45,19 +46,16 @@ void loop() {
 	currentTimestamp = millis();
 	if (currentTimestamp - lastPrintTimestamp > PRINT_INTERVAL)
 	{
-		Serial.print("[");
+		float averages[] = {
+			fifo_getAverage( &lightBuff ), 
+			fifo_getAverage( &tempBuff ), 
+			fifo_getAverage( &pressureBuff ),
+			fifo_getAverage( &temp2Buff ),
+			fifo_getAverage( &humiBuff )
+			};
+		
+		comm::sendPacket(averages, 5);
 
-		Serial.print(fifo_getAverage( &lightBuff ));
-		Serial.print("|");
-		Serial.print(fifo_getAverage( &tempBuff ));
-		Serial.print("|");
-		Serial.print(fifo_getAverage( &pressureBuff ));
-		Serial.print("|");
-		Serial.print(fifo_getAverage( &temp2Buff ));
-		Serial.print("|");
-		Serial.print(fifo_getAverage( &humiBuff ));
-
-		Serial.println("]");
 		lastPrintTimestamp = currentTimestamp;
 	}
 	
