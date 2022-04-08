@@ -7,6 +7,8 @@
 #include <sh_hdc2080.h>
 #include <communication.h>
 
+// DEFINITIONS
+
 #define TEMP_MES_INTERVAL 60000
 #define TEMP_AVG_INTERVAL 600000
 #define TEMP_BUFF_SIZE ROLLING_BUFFER_SIZE(TEMP_AVG_INTERVAL, TEMP_MES_INTERVAL)
@@ -23,13 +25,15 @@
 #define LOW_TEMP 22
 #define HIGH_TEMP 24
 
+
+// GLOBALS
+
+// Buffers
 float _tempBuff[TEMP_BUFF_SIZE] = {0.0f};
 fifo_controller_t tempBuff = {TEMP_BUFF_SIZE, _tempBuff, 0};
 
 float _humiBuff[TEMP_BUFF_SIZE] = {0.0f};
 fifo_controller_t humiBuff = {TEMP_BUFF_SIZE, _humiBuff, 0};
-
-
 
 float _lightBuff[LIG_PR_BUFF_SIZE] = {0.0f};
 fifo_controller_t lightBuff = {LIG_PR_BUFF_SIZE, _lightBuff, 0};
@@ -38,16 +42,15 @@ float _pressureBuff[LIG_PR_BUFF_SIZE] = {0.0f};
 fifo_controller_t pressureBuff = {LIG_PR_BUFF_SIZE, _pressureBuff, 0};
 
 // Timestamps
-unsigned long lastTempTimestamp;
-unsigned long lastPressTimestamp;
-
-unsigned long lastPrintTimestamp;
-unsigned long currentTimestamp;
+unsigned long LastTempTimestamp;
+unsigned long LastPressTimestamp;
+unsigned long LastPrintTimestamp;
+unsigned long CurrentTimestamp;
 
 // State
-bool isLightOn=false;
-float lastPressure = 0.0f;
-float averages[4];
+bool IsLightOn=false;
+float LastPressure = 0.0f;
+float Averages[4];
 
 
 
@@ -56,9 +59,9 @@ void setup() {
 	opt::configure();
 	dps::configure();
 	hdc::configure();
-	lastTempTimestamp = millis();
-	lastPressTimestamp = millis();
-	lastPrintTimestamp = millis();
+	LastTempTimestamp = millis();
+	LastPressTimestamp = millis();
+	LastPrintTimestamp = millis();
 
 	delay(1000);
 	float temp, humi;
@@ -72,23 +75,23 @@ void setup() {
 }
 
 void loop() {
-	currentTimestamp = millis();
+	CurrentTimestamp = millis();
 
 	// Send data over serial
-	if (currentTimestamp - lastPrintTimestamp > PRINT_INTERVAL)
+	if (CurrentTimestamp - LastPrintTimestamp > PRINT_INTERVAL)
 	{
-		averages[0] = fifo_getAverage( &lightBuff );
-		averages[1] = fifo_getAverage( &tempBuff );
-		averages[2] = fifo_getAverage( &pressureBuff );
-		averages[3] = fifo_getAverage( &humiBuff );
+		Averages[0] = fifo_getAverage( &lightBuff );
+		Averages[1] = fifo_getAverage( &tempBuff );
+		Averages[2] = fifo_getAverage( &pressureBuff );
+		Averages[3] = fifo_getAverage( &humiBuff );
 		
-		comm::sendPacket(averages, 4);
+		comm::sendPacket(Averages, 4);
 
-		lastPrintTimestamp = currentTimestamp;
+		LastPrintTimestamp = CurrentTimestamp;
 	}
 	
 	// Measure temperature and humidity
-	if (currentTimestamp - lastTempTimestamp > TEMP_MES_INTERVAL)
+	if (CurrentTimestamp - LastTempTimestamp > TEMP_MES_INTERVAL)
 	{
 		float temp, humi;
 		hdc::read( &temp, &humi );
@@ -107,11 +110,11 @@ void loop() {
 			comm::sendEvent(31);
 		}
 
-		lastTempTimestamp = currentTimestamp;
+		LastTempTimestamp = CurrentTimestamp;
 	}
 
 	// Mesure light and pressure
-	if (currentTimestamp - lastPressTimestamp > LIG_PR_MES_INTERVAL)
+	if (CurrentTimestamp - LastPressTimestamp > LIG_PR_MES_INTERVAL)
 	{
 		float pressure, light, _temp;
 		dps::read( &_temp, &pressure );
@@ -121,23 +124,23 @@ void loop() {
 		fifo_push( &pressureBuff, pressure );
 
 		// Detect pressure change
-		if (lastPressure - pressure > PRESS_TRESHOLD) {
+		if (LastPressure - pressure > PRESS_TRESHOLD) {
 			// Pressure drop
 			comm::sendEvent(20);
 		}
-		else if (pressure - lastPressure > PRESS_TRESHOLD){
+		else if (pressure - LastPressure > PRESS_TRESHOLD){
 			// Pressure rise
 			comm::sendEvent(21);
 		}
-		lastPressure = pressure;
+		LastPressure = pressure;
 
 
 		// Detect light change
-		if(isLightOn == true){
+		if(IsLightOn == true){
 			if(light >= MIN_LUX){
 				// Turn light on
 				comm::sendEvent(10);
-				isLightOn=false;
+				IsLightOn=false;
 			}
 			
 		}
@@ -145,11 +148,11 @@ void loop() {
 			if(light < MIN_LUX){
 				// Turn light off
 				comm::sendEvent(11);
-				isLightOn=true;
+				IsLightOn=true;
 			}
 
 		}
 
-		lastPressTimestamp = currentTimestamp;
+		LastPressTimestamp = CurrentTimestamp;
 	}
 }
