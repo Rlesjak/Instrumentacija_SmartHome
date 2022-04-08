@@ -3,7 +3,7 @@
 ## -Arduino kod
 ---
 
-Kod je pisan u okruženju "PlatofrmIO", koristi Arduino core.
+Kod je pisan u okruženju "PlatformIO", koristi Arduino core.
 
 ### Kratki pregled programskog koda
 
