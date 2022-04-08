@@ -17,3 +17,10 @@ void comm::sendPacket(float *arr, int len)
 	}
 	Serial.println(DATA_END_CHAR);
 }
+
+void comm::sendEvent(int code)
+{
+	Serial.print(EVT_START_CHAR);
+	Serial.print(code);
+	Serial.println(EVT_END_CHAR);
+}
