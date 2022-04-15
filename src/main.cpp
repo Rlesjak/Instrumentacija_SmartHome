@@ -13,17 +13,19 @@
 #define TEMP_AVG_INTERVAL 600000
 #define TEMP_BUFF_SIZE ROLLING_BUFFER_SIZE(TEMP_AVG_INTERVAL, TEMP_MES_INTERVAL)
 
-#define LIG_PR_MES_INTERVAL 1000
-#define LIG_PR_AVG_INTERVAL 10000
+#define LIG_PR_MES_INTERVAL 50
+#define LIG_PR_AVG_INTERVAL 1000
 #define LIG_PR_BUFF_SIZE ROLLING_BUFFER_SIZE(LIG_PR_AVG_INTERVAL, LIG_PR_MES_INTERVAL)
 
 
 #define PRINT_INTERVAL 1000
 
 #define MIN_LUX 750
-#define PRESS_TRESHOLD 6
+#define PRESS_TRESHOLD 0.03
 #define LOW_TEMP 22
 #define HIGH_TEMP 24
+
+#define PRESSURE_DEBOUNCE_TIME 300
 
 
 // GLOBALS
@@ -45,6 +47,8 @@ fifo_controller_t pressureBuff = {LIG_PR_BUFF_SIZE, _pressureBuff, 0};
 unsigned long LastTempTimestamp;
 unsigned long LastPressTimestamp;
 unsigned long LastPrintTimestamp;
+unsigned long PressureChangeTimestampUp;
+unsigned long PressureChangeTimestampDown;
 unsigned long CurrentTimestamp;
 
 // State
@@ -59,9 +63,12 @@ void setup() {
 	opt::configure();
 	dps::configure();
 	hdc::configure();
-	LastTempTimestamp = millis();
-	LastPressTimestamp = millis();
-	LastPrintTimestamp = millis();
+	unsigned long now = millis();
+	LastTempTimestamp = now;
+	LastPressTimestamp = now;
+	LastPrintTimestamp = now;
+	PressureChangeTimestampUp = 0;
+	PressureChangeTimestampDown = 0;
 
 	delay(1000);
 	float temp, humi;
@@ -126,11 +133,27 @@ void loop() {
 		// Detect pressure change
 		if (LastPressure - pressure > PRESS_TRESHOLD) {
 			// Pressure drop
-			comm::sendEvent(20);
+			if ((PressureChangeTimestampDown != 0) && (CurrentTimestamp - PressureChangeTimestampDown > PRESSURE_DEBOUNCE_TIME))
+			{
+				if (LastPressure - pressure > PRESS_TRESHOLD) comm::sendEvent(20);
+				PressureChangeTimestampDown = 0;
+			}
+			else
+			{
+				PressureChangeTimestampDown = CurrentTimestamp;
+			}
 		}
 		else if (pressure - LastPressure > PRESS_TRESHOLD){
 			// Pressure rise
-			comm::sendEvent(21);
+			if ((PressureChangeTimestampUp != 0) && (CurrentTimestamp - PressureChangeTimestampUp > PRESSURE_DEBOUNCE_TIME))
+			{
+				if (pressure - LastPressure > PRESS_TRESHOLD) comm::sendEvent(21);
+				PressureChangeTimestampUp = 0;
+			}
+			else
+			{
+				PressureChangeTimestampUp = CurrentTimestamp;
+			}
 		}
 		LastPressure = pressure;
 
