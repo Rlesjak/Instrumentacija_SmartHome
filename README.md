@@ -65,3 +65,20 @@ Događaji se šalju u sljedećem obliku:
 |             |                     |
 | 30          | Gasi grijanje       |
 | 31          | Pali grijanje       |
+
+#### Lista komadni
+
+| Komanda     	              | Opis                                      |
+| --------------------------- | ----------------------------------------- |
+| $\n                         | Izlista trenutne vrijednosti varijabli    |
+| $1=[cijeli broj]\n          | Postavlja MINIMALNU TEMPERATURU °C        |
+| $2=[cijeli broj]\n          | Postavlja MAKSIMALNU TEMPERATURU U °C     |
+| $3=[cijeli broj]\n          | Postavlja MINIMALNO OSVJETLJENJE U Lux    |
+
+Primjer: postavljanje minimalne temperature na 22°C
+Potrebno je serijskom komunikacijom poslati slijedeće
+```
+$1=22\n
+```
+
+

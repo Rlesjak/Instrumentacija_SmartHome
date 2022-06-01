@@ -1,0 +1,28 @@
+#pragma once
+
+#define PRESS_TRESHOLD 0.03
+
+
+#define TEMP_MES_INTERVAL 60000
+#define TEMP_AVG_INTERVAL 600000
+#define TEMP_BUFF_SIZE ROLLING_BUFFER_SIZE(TEMP_AVG_INTERVAL, TEMP_MES_INTERVAL)
+
+#define LIG_PR_MES_INTERVAL 50
+#define LIG_PR_AVG_INTERVAL 1000
+#define LIG_PR_BUFF_SIZE ROLLING_BUFFER_SIZE(LIG_PR_AVG_INTERVAL, LIG_PR_MES_INTERVAL)
+
+
+#define PRINT_INTERVAL 1000
+
+#define PRESSURE_DEBOUNCE_TIME 300
+
+#define MIN_LUX 750
+#define LOW_TEMP 22
+#define HIGH_TEMP 24
+
+#define COMMAND_START_CHAR '$'
+#define COMMAND_ASSIGN_CHAR '='
+
+extern int settings_min_lux;
+extern int settings_low_temp;
+extern int settings_high_temp;

@@ -6,29 +6,7 @@
 #include <util.h>
 #include <sh_hdc2080.h>
 #include <communication.h>
-
-// DEFINITIONS
-
-#define TEMP_MES_INTERVAL 60000
-#define TEMP_AVG_INTERVAL 600000
-#define TEMP_BUFF_SIZE ROLLING_BUFFER_SIZE(TEMP_AVG_INTERVAL, TEMP_MES_INTERVAL)
-
-#define LIG_PR_MES_INTERVAL 50
-#define LIG_PR_AVG_INTERVAL 1000
-#define LIG_PR_BUFF_SIZE ROLLING_BUFFER_SIZE(LIG_PR_AVG_INTERVAL, LIG_PR_MES_INTERVAL)
-
-
-#define PRINT_INTERVAL 1000
-
-#define MIN_LUX 750
-#define PRESS_TRESHOLD 0.03
-#define LOW_TEMP 22
-#define HIGH_TEMP 24
-
-#define PRESSURE_DEBOUNCE_TIME 300
-
-
-// GLOBALS
+#include <settings.hpp>
 
 // Buffers
 float _tempBuff[TEMP_BUFF_SIZE] = {0.0f};
@@ -56,6 +34,10 @@ bool IsLightOn=false;
 float LastPressure = 0.0f;
 float Averages[4];
 
+int settings_high_temp = HIGH_TEMP;
+int settings_low_temp = LOW_TEMP;
+int settings_min_lux = MIN_LUX;
+
 
 
 void setup() {
@@ -82,6 +64,8 @@ void setup() {
 }
 
 void loop() {
+	comm::serviceSerial();
+	
 	CurrentTimestamp = millis();
 
 	// Send data over serial
@@ -107,11 +91,11 @@ void loop() {
 		fifo_push( &humiBuff, humi );
 
 		// Detect temperature change
-		if (temp >= HIGH_TEMP){	
+		if (temp >= settings_high_temp){	
 			// Turn heating off
 			comm::sendEvent(30);
 		}
-		else if (temp < LOW_TEMP)
+		else if (temp < settings_low_temp)
 		{
 			// Turn heating on
 			comm::sendEvent(31);
@@ -160,7 +144,7 @@ void loop() {
 
 		// Detect light change
 		if(IsLightOn == true){
-			if(light >= MIN_LUX){
+			if(light >= settings_min_lux){
 				// Turn light on
 				comm::sendEvent(10);
 				IsLightOn=false;
@@ -168,7 +152,7 @@ void loop() {
 			
 		}
 		else{
-			if(light < MIN_LUX){
+			if(light < settings_min_lux){
 				// Turn light off
 				comm::sendEvent(11);
 				IsLightOn=true;

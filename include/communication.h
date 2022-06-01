@@ -16,4 +16,5 @@ namespace comm
 	boolean configure(int baud);
 	void sendPacket(float *arr, int len);
 	void sendEvent(int code);
+	void serviceSerial(void);
 }

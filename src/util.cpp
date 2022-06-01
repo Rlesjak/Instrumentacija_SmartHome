@@ -1,7 +1,9 @@
 #include <util.h>
 
-void pulsePin(uint8_t pin){
-  digitalWrite(pin, HIGH);
-  delay(50);
-  digitalWrite(pin, LOW);
+void clearCharArray(char* arr, int size)
+{
+  for (int i = 0; i < size; i++)
+  {
+    arr[i] = '\0';
+  }
 }
