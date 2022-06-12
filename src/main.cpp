@@ -93,12 +93,12 @@ void loop() {
 		// Detect temperature change
 		if (temp >= settings_high_temp){	
 			// Turn heating off
-			comm::sendEvent(30);
+			comm::sendEvent(EVT_HEATING_OFF);
 		}
 		else if (temp < settings_low_temp)
 		{
 			// Turn heating on
-			comm::sendEvent(31);
+			comm::sendEvent(EVT_HEATING_ON);
 		}
 
 		LastTempTimestamp = CurrentTimestamp;
@@ -119,7 +119,7 @@ void loop() {
 			// Pressure drop
 			if ((PressureChangeTimestampDown != 0) && (CurrentTimestamp - PressureChangeTimestampDown > PRESSURE_DEBOUNCE_TIME))
 			{
-				if (LastPressure - pressure > PRESS_TRESHOLD) comm::sendEvent(20);
+				if (LastPressure - pressure > PRESS_TRESHOLD) comm::sendEvent(EVT_PRESS_DOWN);
 				PressureChangeTimestampDown = 0;
 			}
 			else
@@ -131,7 +131,7 @@ void loop() {
 			// Pressure rise
 			if ((PressureChangeTimestampUp != 0) && (CurrentTimestamp - PressureChangeTimestampUp > PRESSURE_DEBOUNCE_TIME))
 			{
-				if (pressure - LastPressure > PRESS_TRESHOLD) comm::sendEvent(21);
+				if (pressure - LastPressure > PRESS_TRESHOLD) comm::sendEvent(EVT_PRESS_UP);
 				PressureChangeTimestampUp = 0;
 			}
 			else
@@ -146,7 +146,7 @@ void loop() {
 		if(IsLightOn == true){
 			if(light >= settings_min_lux){
 				// Turn light on
-				comm::sendEvent(10);
+				comm::sendEvent(EVT_LIGHT_ON);
 				IsLightOn=false;
 			}
 			
@@ -154,7 +154,7 @@ void loop() {
 		else{
 			if(light < settings_min_lux){
 				// Turn light off
-				comm::sendEvent(11);
+				comm::sendEvent(EVT_LIGHT_OFF);
 				IsLightOn=true;
 			}
 

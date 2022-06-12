@@ -23,6 +23,17 @@
 #define COMMAND_START_CHAR '$'
 #define COMMAND_ASSIGN_CHAR '='
 
+// Event codes
+#define EVT_HEATING_ON 31
+#define EVT_HEATING_OFF 30
+
+#define EVT_LIGHT_ON 11
+#define EVT_LIGHT_OFF 10
+
+#define EVT_PRESS_UP 21
+#define EVT_PRESS_DOWN 20
+
+
 extern int settings_min_lux;
 extern int settings_low_temp;
 extern int settings_high_temp;
